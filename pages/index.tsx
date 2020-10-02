@@ -2,42 +2,32 @@
 
 import React from "react";
 import { useQuery, gql, useMutation } from "@apollo/client";
+import { useDispatch } from "react-redux";
+import { initializeStore } from "../lib/redux";
+import { initializeApollo } from "../lib/apollo";
 import Head from "next/head";
 import styled from "styled-components";
 
 const BIKES = gql`
-	query bikes($queries: QueryAllBikesInput) {
-		bikes(queries: $queries) {
+	query bikes($skip: Int!, $limit: Int!) {
+		bikes(skip: $skip, limit: $limit) {
 			id
 			bikeName
 			bikeModel
-			bikeFrame
-			bikeColor
-			bikeYear
-			bikeType
-			bikePrice
-			bikeTransport
-			bikePhotos
-			bikeSale
-			bikeSaleNewPrice
 		}
 	}
 `;
 
-const Home: React.FC = () => {
-	const { loading, error, data, fetchMore, networkStatus, refetch } = useQuery(BIKES, {
+const Home = () => {
+	const { loading, error, data, fetchMore, networkStatus } = useQuery(BIKES, {
 		variables: {
-			queries: {
-				skip: 0,
-				limit: 5,
-				lowPrice: 0,
-				sort: -1,
-				highPrice: 20000,
-			},
+			skip: 0,
+			limit: 20,
 		},
 		notifyOnNetworkStatusChange: true,
-		fetchPolicy: "cache-and-network",
 	});
+
+	console.log(data);
 
 	return (
 		<React.Fragment>
@@ -47,13 +37,41 @@ const Home: React.FC = () => {
 			</Head>
 			<Shop>
 				<Filter></Filter>
-				<ShopContent></ShopContent>
+				<ShopContent>fgdf</ShopContent>
 			</Shop>
 		</React.Fragment>
 	);
 };
 
 export default Home;
+
+export async function getStaticProps() {
+	// const reduxStore = initializeStore()
+	const apolloClient = initializeApollo();
+	// const { dispatch } = reduxStore
+
+	// dispatch({
+	//   type: 'TICK',
+	//   light: true,
+	//   lastUpdate: Date.now(),
+	// })
+
+	await apolloClient.query({
+		query: BIKES,
+		variables: {
+			skip: 0,
+			limit: 10,
+		},
+	});
+
+	return {
+		props: {
+			// initialReduxState: reduxStore.getState(),
+			initialApolloState: apolloClient.cache.extract(),
+		},
+		revalidate: 1,
+	};
+}
 
 const Shop = styled.section`
 	margin: 0px;

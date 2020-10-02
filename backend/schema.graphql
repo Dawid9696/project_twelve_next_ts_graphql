@@ -4,7 +4,8 @@ type Query {
 	users: [User!]!
 	user(id: ID!): User
 	myProfile: User!
-	bikes(queries: QueryAllBikesInput): [Bike!]!
+	bikes(skip: Int, limit: Int): [Bike!]!
+	bikesNoQuery: [Bike!]!
 	bike(id: ID!): Bike
 }
 
@@ -75,18 +76,10 @@ type AuthPayLoad {
 	token: String
 }
 
-input QueryAllBikesInput {
-	limit: Int
-	skip: Int
-	# lowPrice: Int
-	# highPrice: Int
-	# type: [String!]
-	# model: [String!]
-	# color: [String!]
-	# frame: [String!]
-	# year: [Int!]
-	# sort: Int
-}
+# input QueryAllBikesInput {
+# 	limit: Int
+# 	skip: Int
+# }
 
 input LogInInput {
 	email: String!

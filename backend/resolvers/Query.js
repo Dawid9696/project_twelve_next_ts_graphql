@@ -13,19 +13,13 @@ const Query = {
 		return ctx.ModelUser.findById(userId);
 	},
 	bikes: (parent, args, ctx, info) => {
-		return (
-			ctx.ModelBike.find()
-				// .where("bikePrice")
-				// .gte(args.queries.lowPrice)
-				// .lte(args.queries.highPrice)
-				// .sort({ bikePrice: args.queries.sort })
-				// .where({ bikeType: args.queries.type })
-				// .where({ bikeModel: args.queries.model })
-				// .where({ bikeColor: args.queries.color })
-				// .where({ bikeYear: args.queries.year })
-				.limit(args.queries.limit)
-				.skip(args.queries.skip)
-		);
+		console.log(args);
+		return ctx.ModelBike.find().limit(args.limit).skip(args.skip);
+
+		// { bikeFrame: args.queries.frame }
+	},
+	bikesNoQuery: (parent, args, ctx, info) => {
+		return ctx.ModelBike.find();
 
 		// { bikeFrame: args.queries.frame }
 	},
