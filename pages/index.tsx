@@ -1,12 +1,26 @@
 /** @format */
 
-import React from "react";
-import { useQuery, gql, useMutation } from "@apollo/client";
-import { useDispatch } from "react-redux";
+import React, { useState } from "react";
+import { useQuery, gql } from "@apollo/client";
+import { GetStaticProps } from "next";
+import { useSelector, useDispatch } from "react-redux";
 import { initializeStore } from "../lib/redux";
 import { initializeApollo } from "../lib/apollo";
 import Head from "next/head";
+import Link from "next/link";
 import styled from "styled-components";
+
+//IMPORTS
+import BikeCard from "../components/BikeCard";
+
+export interface BikeProps {
+	id: string;
+	bikeModel: string;
+	bikeName: string;
+	bikePhotos: [string];
+	bikePrice: number;
+	bikeSale: boolean;
+}
 
 const BIKES = gql`
 	query bikes($skip: Int!, $limit: Int!) {
@@ -14,30 +28,67 @@ const BIKES = gql`
 			id
 			bikeName
 			bikeModel
+			bikePrice
+			bikePhotos
+			bikeSale
 		}
 	}
 `;
 
-const Home = () => {
+const Home: React.FC = () => {
+	const [limit, setLimit] = useState(10);
+	const count = useSelector((state) => state.count);
+	const dispatch = useDispatch();
+
+	const increment = () =>
+		dispatch({
+			type: "INCREMENT",
+		});
+	const decrement = () =>
+		dispatch({
+			type: "DECREMENT",
+		});
+	const reset = () =>
+		dispatch({
+			type: "RESET",
+		});
+
 	const { loading, error, data, fetchMore, networkStatus } = useQuery(BIKES, {
 		variables: {
 			skip: 0,
-			limit: 20,
+			limit,
 		},
 		notifyOnNetworkStatusChange: true,
 	});
 
-	console.log(data);
+	if (error) return <div>Error</div>;
+	if (loading) return <div>Loading</div>;
 
 	return (
 		<React.Fragment>
 			<Head>
-				<title>SSR</title>
+				<title>SHOP</title>
 				<meta name='viewport' content='initial-scale=1.0, width=device-width' />
 			</Head>
 			<Shop>
 				<Filter></Filter>
-				<ShopContent>fgdf</ShopContent>
+				<Link href={"/AddBike"} scroll passHref>
+					<StyledLink>Dodaj Rower</StyledLink>
+				</Link>
+				<Counter>
+					<div>Wyników: {data.bikes.length}</div>
+					<div>Aktualna liczba: {count}</div>
+					<CounterOptions>
+						<button onClick={increment}>Dodaj</button>
+						<button onClick={decrement}>Odejmij</button>
+					</CounterOptions>
+					<div onClick={() => setLimit(count)}>Zapisz</div>
+				</Counter>
+				<ShopContent>
+					{data.bikes.map((bike: BikeProps) => (
+						<BikeCard key={bike.id} bike={bike} />
+					))}
+				</ShopContent>
 			</Shop>
 		</React.Fragment>
 	);
@@ -45,16 +96,9 @@ const Home = () => {
 
 export default Home;
 
-export async function getStaticProps() {
-	// const reduxStore = initializeStore()
+export const getStaticProps: GetStaticProps = async (context) => {
+	const reduxStore = initializeStore();
 	const apolloClient = initializeApollo();
-	// const { dispatch } = reduxStore
-
-	// dispatch({
-	//   type: 'TICK',
-	//   light: true,
-	//   lastUpdate: Date.now(),
-	// })
 
 	await apolloClient.query({
 		query: BIKES,
@@ -66,12 +110,12 @@ export async function getStaticProps() {
 
 	return {
 		props: {
-			// initialReduxState: reduxStore.getState(),
+			initialReduxState: reduxStore.getState(),
 			initialApolloState: apolloClient.cache.extract(),
 		},
 		revalidate: 1,
 	};
-}
+};
 
 const Shop = styled.section`
 	margin: 0px;
@@ -93,8 +137,36 @@ const Filter = styled.section`
 	flex-direction: row;
 `;
 
-const ShopContent = styled.section`
+const StyledLink = styled.a`
+	margin: 10px;
+	padding: 0px;
+	color: ${(props) => props.theme.colors.main};
+`;
+
+const Counter = styled.section`
 	margin: 0px;
+	padding: 0px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	color: ${(props) => props.theme.colors.main};
+`;
+
+const CounterOptions = styled.section`
+	margin: 10px;
+	padding: 0px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: row;
+	color: ${(props) => props.theme.colors.main};
+`;
+
+const ShopContent = styled.section`
+	margin: 10px;
 	padding: 0px;
 	box-sizing: border-box;
 	display: flex;

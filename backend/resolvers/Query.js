@@ -14,6 +14,7 @@ const Query = {
 	},
 	bikes: (parent, args, ctx, info) => {
 		console.log(args);
+		if (!args) return ctx.ModelBike.find();
 		return ctx.ModelBike.find().limit(args.limit).skip(args.skip);
 
 		// { bikeFrame: args.queries.frame }
